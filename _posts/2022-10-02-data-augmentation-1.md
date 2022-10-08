@@ -58,7 +58,7 @@ As an image is encountered from minibatch to minibatch, it will be rotated with 
 ### Function parameters explanation
 
 
-This function has only one parameter — ```probability```, which determined how likely the image is rotated, during the data augmentation step. Preferably, for a ```probability``` equal to 0.5, your model will be presented with equal shares of the original and flipped images.
+This function has only one parameter — ```probability```, which determined how likely the image is rotated, during the data augmentation step. Preferably, for a `probability = 0.5`, your model will be presented with equal shares of the original and flipped images.
 
 ## Random adjust brightness
 
@@ -70,7 +70,7 @@ In [preprocessor.py]: random_adjust_brightness
 
 The functions algorithm is the following:
 
-- Randomly generate delta from range (```-max_delta```, ```+max_delta```), where ```max_delta``` — parameter of the function (remember, ```max_delta``` must be from 0 to 1. On the image above, max_delta is equal to 0.5)
+- Randomly generate delta from range (```-max_delta```, ```+max_delta```), where ```max_delta``` — parameter of the function (remember, ```max_delta``` must be from 0 to 1. On the image above, `max_delta = 0.5`)
 - Downscale image by dividing it pixelwise on 255
 - Add delta to all components of the downscaled image
 - Upscale resulting image by multiplying it pixelwise by 255
@@ -118,9 +118,12 @@ Your target classes (e.g. sushi on the image) will **not** be covered every time
 - ```size_to_image_ratio``` — determines the patch size. According to documentation, patch size is determined by the equation below:
 
 
-    ```patch_size = size_to_image_ratio * min(image_width, image_height)```
+    ```
+    patch_size = \
+    size_to_image_ratio * min(image_width, image_height)
+    ```
 
-For example, below you will see a visualization of 8 black patches, applied to the image with 90% probability, with different *size_to_image_ratio* parameters: 0.15, 0.25, and 0.25 respectively. **Important conclusion: you must carefully choose the function parameters and visualize their effect! As you see, it can black out your target classes!**
+For example, below you will see a visualization of 8 black patches, applied to the image with 90% probability, with different `size_to_image_ratio` parameters: 0.15, 0.25, and 0.25 respectively. **Important conclusion: you must carefully choose the function parameters and visualize their effect! As you see, it can black out your target classes!**
 
 ![](/img/posts/data-augmentation-1/8.png "Be careful, when defining data augmentation hyperparameters. In this example, large patches can “black-out” the classes from an image")
 
@@ -186,7 +189,7 @@ For this series of images, the user constraints were:
 - ```area_range```: (0.01, 1.0) (Allowed area range for the cropped image)
 - ```overlap_thresh```: 0.3 (If overlap with the bounding box is less than 30%, the algorithm deletes this bounding box!)
 
-Below you see the result of applying random_crop_image function with the above parameters. **In some mini-batches, the cropping augmentation CROPS OUT smaller classes!**
+Below you see the result of applying random_crop_image function with the above parameters. **In some mini-batches, the cropping augmentation crops out smaller classes!**
 
 ![](/img/posts/data-augmentation-1/13.png "Image cropping, probabilistically applied to the same input. Notice, how this function “crops out” target classes on some photos (e.g. 1st and 2nd photos in the 3rd row)")
 
@@ -196,11 +199,11 @@ Cropping out your target classes during training could be critical for your obje
 
 - `min_object_covered` — the cropped image covers at least the `min_object_covered` percentage of at least one object on the image. It means, that if the function covers `min_object_covered` of one class — it can crop the image, to exclude all other classes. An example of excluding classes is on the image above — when the cropping covers 30% of the plate (but not sushi) — it selects the crop, where sushi is not presented!
 
-- `aspect_ratio_range` — tuple of two integers or floats. The aspect ratio will be chosen randomly from the range (`aspect_ratio_range[0]`, `aspect_ratio_range[1]`). Regulates the aspect ratio of the cropped image. For example, on image below for several values of `aspect_ratio_range` — (1, 2), (2, 3), and (0.1, 0.2) respectively.
+- `aspect_ratio_range` — tuple of two integers or floats. The aspect ratio will be chosen randomly from the range `(aspect_ratio_range[0]`, `aspect_ratio_range[1])`. Regulates the aspect ratio of the cropped image. For example, on image below for several values of `aspect_ratio_range` — (1, 2), (2, 3), and (0.1, 0.2) respectively.
 
 ![](/img/posts/data-augmentation-1/14.png "Cropping image, for several values of aspect_ratio_range parameter ((1, 2), (2, 3), (0.1, 0.2) respectively)")
 
-- `area_range` — allowed range of area(cropped_image) / area(source_image). On the image below, you can see variations of croppings, performed for the same `area_range` = (0.1, 0.2)
+- `area_range` — allowed range of area(cropped_image) / area(source_image). On the image below, you can see variations of croppings, performed for the same `area_range = (0.1, 0.2)`
 
 ![](/img/posts/data-augmentation-1/15.png "Variations of random_crop_image function, performed for the same area_range — (0.1, 0.2)")
 
@@ -208,7 +211,7 @@ Cropping out your target classes during training could be critical for your obje
 
 - `clip_boxes` — If the bounding boxes are “clipped” to the new, cropped image. By default, this argument is `True`, and we recommend keeping it `True` unless the task is very specific. If you do not clip your bounding boxes to new image dimensions — you will have negative bounding box coordinates. Because old coordinates are no longer present on the cropped, smaller version of the image, they will turn into negative values.
 
-- `random_coef` — the probability of returning the original input image. If equal to 0.0, the algorithm will always modify the image (which is something you might not wish for, as the model should be presented original data sometimes).
+- `random_coef` — the probability of returning the original input image. When `random_coef` is set to 0.0, the algorithm will always modify the image (which is something you might not wish for, as the model should be presented original data sometimes).
 
 - `seed` — for reproducible results.
 
@@ -267,7 +270,8 @@ In the following picture, notice how greatly vary the linear sizes of the result
 - `min_image_size` — a tensor, consisting of two values. For each iteration, the minimum image size will be sampled at random from your specified range. For example, if you want the minimum size to be always above 350 pixels, but never exceed 500, initialize this parameter as follows:
 
     ```
-    min_image_size = tf.constant([350, 500], dtype=tf.int32)
+    min_image_size = \
+    tf.constant([350, 500], dtype=tf.int32)
     ```
 
 - `max_image_size` — parameter, that describes the available range for maximum image size in pixels. Initialize it the same way as `min_image_size`.
@@ -276,7 +280,8 @@ In the following picture, notice how greatly vary the linear sizes of the result
 
     ```
     # for red color
-    pad_color = tf.constant([255, 0, 0], dtype=tf.float32)
+    pad_color = \
+    tf.constant([255, 0, 0], dtype=tf.float32)
     ```
 - `pad_center` — defined, if the original image will be placed in the center of the padded rectangle, or not. For instance, in the picture below you will see paddings, for `pad_center=False`:
 
@@ -322,7 +327,7 @@ Down this text, you see how significantly it distorts the color of the image. Be
 
 ### Function parameters explanation
 
-- `max_delta` — the intensity of the hue modification. For reference, `max_delta` = 0.5 on the image above, which already leads to intense distortion.
+- `max_delta` — the intensity of the hue modification. For reference, `max_delta = 0.5` on the image above, which already leads to intense distortion.
 
 - `seed` — for reproducible results.
 
