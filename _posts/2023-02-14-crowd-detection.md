@@ -2,15 +2,14 @@
 layout: post
 title: "Convolutional Neural Networks for crowd numerosity estimation"
 subtitle: ""
-background: '/img/posts/crowd-detection/crowd.jpg'
+background: "/img/posts/crowd-detection/crowd.jpg"
 ---
 
 # Introduction
 
-Hello there! 
+Hello there!
 
 This article is devoted to my <a target="_blank" href="https://github.com/PashaIanko/Kaggle.CrowdCounting">project</a>, available on github. We will use popular CNN architectures to estimate crowd numerosity in a busy shopping mall. This problem originates from a <a target="_blank" href="https://www.kaggle.com/datasets/fmena14/crowd-counting">Kaggle discussion</a>, dedicated to crowd detection.
-
 
 We will cover following topics:
 
@@ -22,8 +21,6 @@ We will cover following topics:
 
 - Results of the best model on the test set, and concluding with the most efficient transfer learning techniques, that helped to achieve 1.64 MAE test performance
 
-
-
 # Alternative approaches to crowd counting
 
 Alternative approaches are divided into **regression-based, detection-based, and clustering-based**.
@@ -31,17 +28,13 @@ Alternative approaches are divided into **regression-based, detection-based, and
 
 For example, the work of <a href="http://personal.ie.cuhk.edu.hk/~ccloy/files/bmvc_2012b.pdf" target="_blank">Chen et al.</a> splits an original image into a grid of cells. From each cell, local visual features are extracted. In summary, each input image is transformed into a cell-ordered numerical vector, that encodes the extracted features. This vector represents an input for a multi-output regression model, predicting number of pedestrians in each cell independently. Such approach achieves 3.15 Mean Absolute Error (MAE) on a "Shopping Mall Dataset".
 
-
 ![](/img/posts/crowd-detection/chen_paper.png "The paper of Chen et al., general idea")
-
-
 
 The researchers, who follow the **detection-based** approach, use the models of classic Machine Learning, or Deep Learning, or even probabilistic models, to detect instances of people. As you see in the picture below, <a target="_blank" href="http://vision.cse.psu.edu/publications/pdfs/2009ge3.pdf"> W. Ge et al.</a> uses Bayesian algorithms to detect players on the field, while in the paper of <a target="_blank" href="https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=7dc92fbc3742a84cb26c24644184a0e960f4da2c">Min Li et al.</a>, an adaboost regressor detects the head-shoulder visual patterns, that are robust to crowdedness and occlusions.
 
 Such models perform at a fairly high detection rate of 92%, and the predicted crowd numerosity is visually close to the ground truth (as it follows from the plot below).
 
 ![](/img/posts/crowd-detection/detection_based_approach.png "The key idea of detection-based approach")
-
 
 The concept of **clustering-based** approach is that a moving human represents a "cloud" of points, moving coherently. Thus, one can take advantage of clustering methods, to detect such regularities. The inference pipeline consists of a feature extractor, and a clustering algorithm, analyzing the sequence of video frames, and taking the extracted visual features as an input (like in the work of <a target="_blank" href="http://mi.eng.cam.ac.uk/research/projects/Crowds/draft02/MotionInCrowds_BrostowCipolla_CVPR06.pdf">Brostow et al.</a>).
 
@@ -65,9 +58,10 @@ We start with training six popular CNN models -- ResNet50, Xception, Inception v
 - MAE error on validation dataset
 
 Then, the best baseline is improved with several transfer learning techniques:
+
 - Pretraining with additional dataset
 - Selecting the optimal number of unfrozen layers
-- Using the pre-training technique, cited from the book of 
+- Using the pre-training technique, cited from the book of
 
 <a target="_blank" href="https://www.amazon.it/Hands-Machine-Learning-Scikit-learn-Tensorflow/dp/1098125975/ref=sr_1_1?adgrpid=58345655971&gclid=Cj0KCQiA6LyfBhC3ARIsAG4gkF-IsjPl8cJZExlQg84YeMHrjSm5MKzi4gC9uzfOCyu9UnREOnjzX5AaAvmfEALw_wcB&hvadid=255175924799&hvdev=c&hvlocphy=1008611&hvnetw=g&hvqmt=e&hvrand=4144858386514436401&hvtargid=kwd-295090772533&hydadcr=18606_1822710&keywords=hands+on+machine+learning&qid=1676626162&sr=8-1">A. Geron "Hands-On Machine Learning Guide"</a>.
 
@@ -76,7 +70,6 @@ Then, the best baseline is improved with several transfer learning techniques:
 The feature extractors of each models were appended with the classification block, consisting of ReLU and fully connected layers. As you see in the picture below, all models share the same training hyperparameters (number of epochs, optimizer, batch size, and callbacks).
 
 ![](/img/posts/crowd-detection/classification_block.png)
-
 
 # Experimental results
 
@@ -122,13 +115,11 @@ The reasons, why the pre-training did not boost the model's performance include 
 
 ![](/img/posts/crowd-detection/reasons_for_low_effect_of_prw.png "Reasons for low effect of pre-training on PRW data")
 
-
 ## Using advanced pre-training algorithm
 
 In his <a target="_blank" href="https://www.amazon.it/Hands-Machine-Learning-Scikit-learn-Tensorflow/dp/1098125975/ref=sr_1_1?adgrpid=58345655971&gclid=Cj0KCQiA6LyfBhC3ARIsAG4gkF-IsjPl8cJZExlQg84YeMHrjSm5MKzi4gC9uzfOCyu9UnREOnjzX5AaAvmfEALw_wcB&hvadid=255175924799&hvdev=c&hvlocphy=1008611&hvnetw=g&hvqmt=e&hvrand=4144858386514436401&hvtargid=kwd-295090772533&hydadcr=18606_1822710&keywords=hands+on+machine+learning&qid=1676626162&sr=8-1">book, Aurelien Geron</a> shares a correct pre-training procedure. In fact, when we utilize transfer learning approach, we append the pre-trained feature extractor with the layers, that have the randomly initialized weights. Therefore, the first gradient updates will be larger. These updates, when back-propagated, can override the knowledge, hardwired into the weights of the feature extractor during the pre-training step. To address this issure, Aurelien Geron suggests the algorithm, that is described in the image below.
 
 Notice, how using the correct pre-training procedure gives us even better results, than using additional data! This is the first experiment, when we dropped the validation MAE below 2.0. Thus, we definitely include this algorithm into our final solution.
-
 
 ![](/img/posts/crowd-detection/geron_algorithm_results.png)
 
@@ -138,20 +129,8 @@ Our final solution includes the **Xception** architecture, with the **ELU** acti
 
 ![](/img/posts/crowd-detection/final_solution.png)
 
-The final solution achieves 1.63 validation MAE error, which is twice as much better, compared to the <a target="_blank" href="http://personal.ie.cuhk.edu.hk/~ccloy/files/bmvc_2012b.pdf">regression-based approach of Chen et al.</a>. After validating the model, it is time to try it on the test data. From the image below, we see, that the test result of 1.64 MAE is comparable with 1.63 MAE on validation, thus we have not overfit the validation set. 
+The final solution achieves 1.63 validation MAE error, which is twice as much better, compared to the <a target="_blank" href="http://personal.ie.cuhk.edu.hk/~ccloy/files/bmvc_2012b.pdf">regression-based approach of Chen et al.</a>. After validating the model, it is time to try it on the test data. From the image below, we see, that the test result of 1.64 MAE is comparable with 1.63 MAE on validation, thus we have not overfit the validation set.
 
 ![](/img/posts/crowd-detection/final_solution_test_report.png)
 
 This is the final solution to the problem of predicting the crowd numerosity. Thank you for your attention!
-
-
-
-
-
-
-
-
-
-
-
-
